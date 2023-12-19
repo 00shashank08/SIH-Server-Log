@@ -14,7 +14,7 @@ with open(text_file, "r") as f:
 
 llm = OpenAI(openai_api_key=api_key)
 
-conversation_history = ["Analyze web server logs, focusing on user login and logout activity. Analyse and report the total number of logins and logouts, potential security threats, and any login failures. Further comment on the overall risk on the system with respect to possible attacks occuring."]
+conversation_history = ["Analyze web server logs, focusing on user login and logout activity. Analyse and report the total number of logins and logouts, potential security threats, and any login failures. On the basis of these logs, is it likely that there any possible attacks occuring?"]
 
 
 
