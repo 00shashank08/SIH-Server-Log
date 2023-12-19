@@ -68,8 +68,8 @@ def make_ask():
   # return json_response
   # return str(str(type(mem_stats)) + " - " + str(mem_stats))
   return {
-    "memory": str(mem_df),
-    "cpu": str(cpu_df)
+    "memory": str(newmem),
+    "cpu": str(newcpu)
   }
 
 if __name__ == "__main__":
