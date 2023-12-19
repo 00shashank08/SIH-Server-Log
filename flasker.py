@@ -37,34 +37,79 @@ def analyze_server_health(given_server_name, cpusage, memusage):
     "message": alert_message,
   }
 
+def returnstats_skeletal(given_server_name, server_addr):
+  server_name = given_server_name
+  server_ip = server_addr
+
+  # Get CPU usage percentage
+  cpu_usage = psutil.cpu_percent()
+
+  # Get memory usage
+  mem_usage = psutil.virtual_memory().percent
+
+  disk_usage = psutil.disk_usage("/").percent
+  network_bytes_sent, network_bytes_received = psutil.net_io_counters().bytes_sent, psutil.net_io_counters().bytes_recv
+
+  returnobj = {
+    "CPU Usage": cpu_usage,
+    "disk_usage": disk_usage,
+    "network_traffic": {
+      "sent": network_bytes_sent,
+      "received": network_bytes_received,
+    },     
+    "Memory Usage": mem_usage,
+  }
+
+  return returnobj
+
+
 def returnstats(given_server_name, server_addr):
-    server_name = given_server_name
-    server_ip = server_addr
-    
-    # Get CPU usage percentage
-    cpu_usage = psutil.cpu_percent()
+  server_name = given_server_name
+  server_ip = server_addr
+  
+  # Get CPU usage percentage
+  cpu_usage = psutil.cpu_percent()
+  cpu_usage_num = psutil.cpu_percent()
 
-    # Get memory usage
-    mem_usage = psutil.virtual_memory().percent
+  # Get memory usage
+  mem_usage = psutil.virtual_memory().percent
 
-    # Get additional memory information (optional)
-    mem_stats = psutil.virtual_memory()
+  # Get additional memory information (optional)
+  mem_stats = psutil.virtual_memory()
 
-    # Optionally, get more detailed CPU information
-    cpu_stats = psutil.cpu_stats()
-    status = analyze_server_health(given_server_name=server_name, cpusage=cpu_usage, memusage=mem_usage)
+  # Optionally, get more detailed CPU information
+  cpu_stats = psutil.cpu_stats()
+  status = analyze_server_health(given_server_name=server_name, cpusage=cpu_usage_num, memusage=mem_usage)
 
-    returnobj = {
-        "Server Name": server_name,
-        "Ip Address": server_ip,
-        "CPU Usage": cpu_usage,
-        "CPU Stats": cpu_stats,
-        "Memory Usage": mem_usage,
-        "Memory Stats": mem_stats,
-        "Status": status
-    }
+  disk_usage = psutil.disk_usage("/").percent
+  network_bytes_sent, network_bytes_received = psutil.net_io_counters().bytes_sent, psutil.net_io_counters().bytes_recv
 
-    return returnobj
+  returnobj = {
+      "Server Name": server_name,
+      "Ip Address": server_ip,
+      "CPU Usage": cpu_usage,
+      "CPU Stats": {
+        "ctx_switches":cpu_stats.ctx_switches,
+        "interrupts":cpu_stats.interrupts,
+        "soft_interrupts":cpu_stats.soft_interrupts,
+        "syscalls":cpu_stats.syscalls
+      },
+      "disk_usage": disk_usage,
+      "network_traffic": {
+          "sent": network_bytes_sent,
+          "received": network_bytes_received,
+      },
+      "Memory Usage": mem_usage,
+      "Memory Stats": {
+        "total": mem_stats.total,
+        "used": mem_stats.used,
+        "free": mem_stats.free,
+        "available": mem_stats.available,
+    },
+      "Status": status
+  }
+
+  return returnobj
 
 
 app = Flask(__name__)
@@ -80,6 +125,16 @@ def ask():
     obj = returnstats(given_server_name=servername, server_addr=ip_addr)
 
     return obj
+
+@app.route("/ask_skeletal", methods=["POST"])
+@cross_origin()
+def ask_skeletal():
+    servername = request.json["server_name"]
+    ip_addr = request.json["ip"]
+
+    obj_sk = returnstats_skeletal(given_server_name=servername, server_addr=ip_addr)
+
+    return obj_sk
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5053)
